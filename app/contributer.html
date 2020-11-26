@@ -1,0 +1,297 @@
+<html>
+
+<head>
+    <!--script src="web3.js"></script-->
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script>
+        const address = "0x97fa90DC80ddbB7D061eD27b6AD26ABF1b503D00";
+        //--------------------------------
+        // No longer supported (start from Nov 20, 2020)
+        //const provider = window.web3.currentProvider; ใช้สำหรับ matamak สมัยก่อน อัพเดทใหม่วันที่ 20 เดือนนี้
+        //const web3 = new Web3(provider);
+        //--------------------------------
+
+        const web3 = new Web3(Web3.givenProvider); //ใช้ตัวนี้แทนตัวที่ถูกยกเลิกใช้ไป
+        const mnemonic =
+            "duty pause indoor card juice unknown butter clinic picture roast fringe milk";
+        const truffleURL =
+            "https://rinkeby.infura.io/v3/5de0f941235d4e968310a7ddc02950cb";
+
+        window.addEventListener("load", async () => {
+            //เช็คว่า metamask install ไหม
+            if (typeof web3 === "undefined") {
+                //return console.log("Metamask is not installed");
+                alert("Metamask is not installed, you cannot use this app");
+            } else {
+                window.ethereum
+                    .enable(); //เด้งแจ้งเตือนถาม matamask ว่าต้องการเชื่อมต่อกับเว็บไซต์นี้ไหม ส่วนสำคัญ
+                await getAccounts();
+            }
+        });
+
+        const abi = [{
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "minimum",
+                "type": "uint256"
+            }, {
+                "internalType": "address",
+                "name": "creator",
+                "type": "address"
+            }],
+            "stateMutability": "payable",
+            "type": "constructor"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "index",
+                "type": "uint256"
+            }],
+            "name": "approveRequest",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }],
+            "name": "approvers",
+            "outputs": [{
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [],
+            "name": "contribute",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+            }, {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }, {
+                "internalType": "address",
+                "name": "recipient",
+                "type": "address"
+            }],
+            "name": "createRequest",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "index",
+                "type": "uint256"
+            }],
+            "name": "finalizeRequest",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
+        }, {
+            "inputs": [],
+            "name": "manager",
+            "outputs": [{
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [],
+            "name": "minimumContribution",
+            "outputs": [{
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }],
+            "name": "requests",
+            "outputs": [{
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+            }, {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }, {
+                "internalType": "address",
+                "name": "recipient",
+                "type": "address"
+            }, {
+                "internalType": "bool",
+                "name": "complete",
+                "type": "bool"
+            }, {
+                "internalType": "uint256",
+                "name": "approvalCount",
+                "type": "uint256"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }]
+        var campaign;      
+        const selectCampaign = async () => {
+            const address = document.getElementById("campaignHash").value;
+            campaign = new web3.eth.Contract(abi, address);
+            document.getElementById("request").style.display = "block";
+            const minimum = await campaign.methods.minimumContribution().call();
+            document.getElementById("requestConsole").innerHTML = 'Minimum Contribution : '+minimum;
+        };     
+        const showRequest = async () => {
+            const index = document.getElementById("index").value;
+            const request = await campaign.methods.requests(index).call();
+            document.getElementById("showConsole").innerHTML = "<h3>Request detail</h3>" + JSON.stringify(request) + "<br>";
+        };
+        const makeContri = async () => {
+            const accounts = await web3.eth.getAccounts();
+            const balance = document.getElementById("balance").value;
+            await campaign.methods.contribute().send({from:accounts[0],value:web3.utils.toWei(balance, "wei")})
+            document.getElementById("requestConsole").innerHTML = "Contributed";
+        }
+        const approveReq = async () => {
+            const accounts = await web3.eth.getAccounts();
+            const index = document.getElementById("apprIndex").value;
+            await campaign.methods.approveRequest(index).send({from:accounts[0]})
+            document.getElementById("aprovedConsole").innerHTML = "Approved";
+        }
+    </script>
+</head>
+
+<body>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #eece9e;
+        }
+
+        .topnav {
+            overflow: hidden;
+            background-color: #333;
+        }
+
+        .topnav a {
+            float: left;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .topnav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .topnav a.active {
+            background-color: #eb6b15;
+            color: white;
+        }
+    </style>
+    </head>
+
+    <body>
+
+        <div class="topnav">
+            <a href="app.html">Home</a>
+            <a href="createcampaign.html">Create Campaign</a>
+            <a class="active" href="contributer.html">For Contributer</a>
+            <a href="request.html">My Owning Campaign</a>
+        </div>
+
+        <style>
+            div.a {
+              text-align: center;
+            }
+            div.b {
+                padding-left: 200px;
+            }
+            h1 {
+              color: #791c0c;
+              text-shadow: 2px 2px 5px rgb(104, 100, 100);
+            }
+            h3 {
+              color: #791c0c;
+            }
+            h4 {
+              color: #5c3713;
+            }
+            .button {
+                background-color: #eb6b15;
+                border: none;
+                color: white;
+                padding: 10px 15px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 12px;
+                margin: 3px 2px;
+                cursor: pointer;
+                border-radius: 8px;
+            }
+            .button2 {
+                background-color: #9e4e19;
+                border: none;
+                color: white;
+                padding: 10px 15px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 12px;
+                margin: 3px 2px;
+                cursor: pointer;
+                border-radius: 8px;
+            }
+        </style>
+
+        <div class="a">
+            <h1>Contributer</h1>
+            <h4>Please insert campaign hash your looking for</h4>
+            Campaign Hash: <input type="text" id="campaignHash" size="44"/>
+            <button type="button" onclick="selectCampaign()" class="button">Select</button>
+        </div>
+        
+        <div id="request" style="display: none" class="b">
+            <hr>
+            <div class="b">
+            <h4>You are not contributer yet?</h4>
+            Insert value : <input type="text" id="balance" size="26" />    
+            <button type="button" onclick="makeContri()" class="button2">Confirm</button>
+            <div id="requestConsole" ></div>
+            <h4>Find Request</h4>
+            Request index : <input type="text" id="index" />
+            <button type="button" onclick="showRequest()" class="button2">Find</button>
+            <h4>Aproval Request</h4>  
+            Request Index: <input type="text" id="apprIndex" size="24"/>
+            <button type="button" onclick="approveReq()" class="button2">Approved</button>
+            <div id="aprovedConsole" ></div>
+            <div id="showConsole" ></div>
+        </div>
+          </div>
+        </div>
+          
+    </body>
+
+</html>
