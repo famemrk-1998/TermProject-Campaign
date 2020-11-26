@@ -1,7 +1,7 @@
 const fs = require("fs");
 const Web3 = require("web3");
-const mnemonic = "duty pause indoor card juice unknown butter clinic picture roast fringe milk"
-const truffleURL = "https://rinkeby.infura.io/v3/5de0f941235d4e968310a7ddc02950cb"
+const mnemonic = "xxxxxxx"
+const truffleURL = "xxxxxxx"
 const HDWalletProvider = require("truffle-hdwallet-provider");
 const provider = new HDWalletProvider(mnemonic, truffleURL)
 const web3 = new Web3(provider);
